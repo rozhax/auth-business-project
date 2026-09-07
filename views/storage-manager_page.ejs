@@ -54,11 +54,6 @@
               <input type="number" step="0.01" min="0" max="999.99" class="form-control" name="supply-count" placeholder="0.00" required>
             </div>
 
-            <div class="mb-3">
-              <label class="form-label">Date of Delivery</label>
-              <input type="datetime-local" class="form-control" name="date_of_delivery" id="deliveryDate">
-            </div>
-
             <button type="submit" class="btn btn-primary w-100">Save Supply</button>
           </form>
         </div>
@@ -84,8 +79,17 @@
                   <th>Delivered At</th>
                 </tr>
               </thead>
-              <tbody id="supplyTableBody">
-                <!-- Dynamic rows load here -->
+              <tbody>
+                <% supplies.forEach(function(supply) { %>
+                  <tr>
+                    <td><%= supply.id %></td>
+                    <td><%= supply['supplier-name'] %></td>
+                    <td><%= supply['supply-label'] %></td>
+                    <td><%= supply['supply-type'] %> / <%= supply['supply-category'] %></td>
+                    <td><%= supply['supply-count'] %></td>
+                    <td><%= supply['date-of-delivery'] %></td>
+                  </tr>
+                <% }); %>
               </tbody>
             </table>
           </div>

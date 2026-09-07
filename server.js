@@ -1,5 +1,3 @@
-
-
 const path = require('path');
 const express = require('express');
 const session = require('express-session');
@@ -76,26 +74,35 @@ app.get('/cashier', requireLogin('cashier'), (req, res) => {
   res.render('cashier_page', { name: req.session.name });
 });
 
-
+//study from here for supply 
 app.get('/storage-manager', requireLogin('storage-manager'), (req, res) => {
-  res.render('storage-manager_page', { name: req.session.name });
+  const supplies = sup.getAllSupplies();
+  res.render('storage-manager_page', { name: req.session.name, supplies });
 });
 
-app.post('/supplier', requireLogin('storage-manager'), async (req, res) => {
-  const { supplierName, supplyLabel, supplyType, supplyCategory, supplyCount, dateOfDelivery } = req.body;
+app.post('/supplier', requireLogin('storage-manager'), (req, res) => {
+  
+  const supplierName = req.body['supplier-name'];
+  const supplyLabel = req.body['supply-label'];
+  const supplyType = req.body['supply-type'];
+  const supplyCategory = req.body['supply-category'];
+  const supplyCount = req.body['supply-count'];
+  const dateOfDelivery = req.body['date_of_delivery'];
+
+  if (!supplierName || !supplyLabel || !supplyType || !supplyCategory || !supplyCount) {
+    return res.status(400).send('All supply fields are required.');
+  }
 
   try {
-    sup.prepare(
-      `INSERT INTO suppliers (supplier-name, supply-label, supply-type, supply-category, supply-count, date-of-delivery)
-       VALUES (?, ?, ?, ?, ?, ?)`
-    ).run(supplierName, supplyLabel, supplyType, supplyCategory, supplyCount, dateOfDelivery);
-
+    sup.addSupply({ supplierName, supplyLabel, supplyType, supplyCategory, supplyCount, dateOfDelivery });
     res.redirect('/storage-manager');
   } catch (err) {
     console.error('Supplier insert error:', err);
     res.status(500).send('Something went wrong.');
   }
 });
+
+//stop here for study supply
 
 app.get('/store-owner', requireLogin('store-owner'), (req, res) => {
   res.render('store-owner_page', { name: req.session.name });
