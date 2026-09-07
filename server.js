@@ -5,6 +5,7 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
+const sup = require('./supplier');
 const Database = require('better-sqlite3');
 const SqliteStore = require('better-sqlite3-session-store')(session);
 const sessionDb = new Database(path.join(__dirname, 'db', 'sessions.db'));
@@ -80,6 +81,22 @@ app.get('/storage-manager', requireLogin('storage-manager'), (req, res) => {
   res.render('storage-manager_page', { name: req.session.name });
 });
 
+app.post('/supplier', requireLogin('storage-manager'), async (req, res) => {
+  const { supplierName, supplyLabel, supplyType, supplyCategory, supplyCount, dateOfDelivery } = req.body;
+
+  try {
+    sup.prepare(
+      `INSERT INTO suppliers (supplier-name, supply-label, supply-type, supply-category, supply-count, date-of-delivery)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    ).run(supplierName, supplyLabel, supplyType, supplyCategory, supplyCount, dateOfDelivery);
+
+    res.redirect('/storage-manager');
+  } catch (err) {
+    console.error('Supplier insert error:', err);
+    res.status(500).send('Something went wrong.');
+  }
+});
+
 app.get('/store-owner', requireLogin('store-owner'), (req, res) => {
   res.render('store-owner_page', { name: req.session.name });
 });
@@ -93,7 +110,7 @@ app.post('/register', async (req, res) => {
     req.session.active_form = 'register';
     return res.redirect('/');
   }
-
+//dont understand
   try {
     const existing = db.prepare('SELECT id FROM auth WHERE email = ?').get(email);
 
@@ -133,7 +150,7 @@ app.post('/login', async (req, res) => {
       req.session.email = auth.email;
       req.session.role = auth.role;
 
-      return res.redirect(auth.role === 'store-owner' ? '/store-owner' : '/cashier' && 'storage-manager' ? '/storage-manager' : '/cashier');
+      return res.redirect(auth.role === 'store-owner' ? '/store-owner' : auth.role === 'storage-manager' ? '/storage-manager' : '/cashier');
     }
 
     req.session.login_error = 'Incorrect email or password';

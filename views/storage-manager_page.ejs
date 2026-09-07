@@ -4,18 +4,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>storage manager Page</title>
-  <link rel="stylesheet" href="/style.css">
+  <title>Supply Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+<body class="bg-light">
 
-<body style="background-color: #ffff;">
+<div class="container my-5">
+  <div class="row g-4">
+    <!-- Add Supply Form -->
+    <div class="col-md-5">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-0">Add New Supply</h5>
+        </div>
+        <div class="card-body">
+          <form action="/supplier" method="post">
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" class="form-control" name="supplier-name" required placeholder="supplier name">
+            </div>
 
-  <div class="box">
-    <h1>Welcome, <span><%= name %></span></h1>
-    <p>This is an <span>storage manager</span> page</p>
-    <button onclick="window.location.href='/logout'">Logout</button>
+            <div class="mb-3">
+              <label class="form-label">Supply Label</label>
+              <input type="text" class="form-control" name="supply-label" required placeholder="supply label">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Supply Type</label>
+              <input type="text" class="form-control" name="supply-type" required placeholder="e.g. Perishable, Raw Material">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Supply Category</label>
+              <select name="supply-category" required class="form-control"> 
+                    <option value="">Select Catagory</optio>
+                    <option value="deli">Deli</option>
+                    <option value="produce">produce</option>
+                    <option value="meat-and-poultry">Meat and poultry</option>
+                    <option value="dairy">Dairy</option>
+                    <option value="frzen-food">Frozen Food</option>
+                    <option value="baery">Bakery</option>
+                    <option value="seafood">Seafood</option>
+              </select> 
+              
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Supply Count</label>
+              <input type="number" step="0.01" min="0" max="999.99" class="form-control" name="supply-count" placeholder="0.00" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Date of Delivery</label>
+              <input type="datetime-local" class="form-control" name="date_of_delivery" id="deliveryDate">
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Save Supply</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="col-md-7">
+      <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+          <h5 class="card-title mb-0">Supply Inventory</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Label</th>
+                  <th>Type / Category</th>
+                  <th>Count</th>
+                  <th>Delivered At</th>
+                </tr>
+              </thead>
+              <tbody id="supplyTableBody">
+                <!-- Dynamic rows load here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
+
+
 
 </body>
+
 
 </html>
