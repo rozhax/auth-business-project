@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login and Registeration Form with cashier and storage manager and store owner</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <div id="login-form" class="form-box <%= activeForm === 'login' ? 'active' : '' %>">
+            <form action="/login" method="post">
+                <h2>Login</h2>
+                <% if (loginError) { %>
+                    <p class="error-message"><%= loginError %></p>
+                <% } %>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+                <p>if you don't have an account <a href="javascript:void(0)" onclick="ShowForm('register-form')">Register</a>
+                </p>
+            </form>
+        </div>
+
+        <div id="register-form" class="form-box <%= activeForm === 'register' ? 'active' : '' %>">
+            <form action="/register" method="post">
+                <h2>Register</h2>
+                <% if (registerError) { %>
+                    <p class="error-message"><%= registerError %></p>
+                <% } %>
+                <input type="text" name="name" placeholder="Name" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <select name="role" required>
+                    <option value="">Select Role</option>
+                    <option value="cashier">cashier</option>
+                    <option value="storage-manager">storage manager</option>
+                    <option value="store-owner">store owner</option>
+                </select>
+                <button type="submit">Register</button>
+                <p>if you have an account <a href="javascript:void(0)" onclick="ShowForm('login-form')">Login</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <script src="/script.js"></script>
+</body>
+
+</html>
