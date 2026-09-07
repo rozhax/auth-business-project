@@ -3,7 +3,7 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
-const sup = require('./supplier');
+const supplier = require('./supplier');
 const Database = require('better-sqlite3');
 const SqliteStore = require('better-sqlite3-session-store')(session);
 const sessionDb = new Database(path.join(__dirname, 'db', 'sessions.db'));
@@ -76,10 +76,11 @@ app.get('/cashier', requireLogin('cashier'), (req, res) => {
 
 //study from here for supply 
 app.get('/storage-manager', requireLogin('storage-manager'), (req, res) => {
-  const supplies = sup.getAllSupplies();
+  const supplies = supplier.getAllSupplies();
   res.render('storage-manager_page', { name: req.session.name, supplies });
 });
 
+// so /supplier is from line 6 that initializes the path
 app.post('/supplier', requireLogin('storage-manager'), (req, res) => {
   
   const supplierName = req.body['supplier-name'];
@@ -94,7 +95,7 @@ app.post('/supplier', requireLogin('storage-manager'), (req, res) => {
   }
 
   try {
-    sup.addSupply({ supplierName, supplyLabel, supplyType, supplyCategory, supplyCount, dateOfDelivery });
+    supplier.addSupply({ supplierName, supplyLabel, supplyType, supplyCategory, supplyCount, dateOfDelivery });
     res.redirect('/storage-manager');
   } catch (err) {
     console.error('Supplier insert error:', err);
@@ -136,6 +137,9 @@ app.post('/register', async (req, res) => {
 
     req.session.active_form = 'login';
     return res.redirect('/');
+
+    // this is for the programmer only it shows error that sqlite detects because of throw catch system in sqlite3 
+    
   } catch (err) {
     console.error('Register error:', err);
     req.session.register_error = 'Something went wrong. Please try again.';

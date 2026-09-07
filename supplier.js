@@ -5,18 +5,7 @@ const sp = new Database(path.join(__dirname, 'db', 'supplier.db'));
 
 // Rename the old (empty) "sup" table to "suppliers" if it still exists from
 // an earlier version of this file, and fix the "supply-catagory" typo.
-const oldTable = sp.prepare(
-  "SELECT name FROM sqlite_master WHERE type='table' AND name='sup'"
-).get();
-if (oldTable) {
-  sp.exec('ALTER TABLE sup RENAME TO suppliers');
-  const hasTypo = sp.prepare(
-    "SELECT 1 FROM pragma_table_info('suppliers') WHERE name = 'supply-catagory'"
-  ).get();
-  if (hasTypo) {
-    sp.exec('ALTER TABLE suppliers RENAME COLUMN "supply-catagory" TO "supply-category"');
-  }
-}
+
 
 sp.exec(`
   CREATE TABLE IF NOT EXISTS suppliers (
@@ -45,4 +34,4 @@ function getAllSupplies() {
   return sp.prepare('SELECT * FROM suppliers ORDER BY id DESC').all();
 }
 
-module.exports = { db: sp, addSupply, getAllSupplies };
+module.exports = { supplierbd: sp, addSupply, getAllSupplies };
