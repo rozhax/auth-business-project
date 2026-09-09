@@ -86,15 +86,16 @@ app.post('/supplier', requireLogin('storage-manager'), (req, res) => {
   const supplyLabel = req.body['supply-label'];
   const supplyType = req.body['supply-type'];
   const supplyCategory = req.body['supply-category'];
+  const supplyTypeOfMeasurement = req.body['supply-type-of-measurement'];
   const supplyCount = req.body['supply-count'];
-  const dateOfDelivery = req.body['date_of_delivery'];
+  const dateOfDelivery = req.body['date-of-delivery'];
 
-  if (!supplierName || !supplyLabel || !supplyType || !supplyCategory || !supplyCount) {
+  if (!supplierName || !supplyLabel || !supplyType || !supplyTypeOfMeasurement || !supplyCategory || !supplyCount) {
     return res.status(400).send('All supply fields are required.');
   }
 
   try {
-    supplier.addSupply({ supplierName, supplyLabel, supplyType, supplyCategory, supplyCount, dateOfDelivery });
+    supplier.addSupply({ supplierName, supplyLabel, supplyType, supplyCategory, supplyTypeOfMeasurement, supplyCount, dateOfDelivery });
     res.redirect('/storage-manager');
   } catch (err) {
     console.error('Supplier insert error:', err);

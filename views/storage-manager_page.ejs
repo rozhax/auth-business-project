@@ -37,7 +37,7 @@
             <div class="mb-3">
               <label class="form-label">Supply Category</label>
               <select name="supply-category" required class="form-control"> 
-                    <option value="">Select Catagory</optio>
+                    <option value="">Select Category</option>
                     <option value="deli">Deli</option>
                     <option value="produce">produce</option>
                     <option value="meat-and-poultry">Meat and poultry</option>
@@ -46,12 +46,30 @@
                     <option value="baery">Bakery</option>
                     <option value="seafood">Seafood</option>
               </select> 
-              
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Measurement Type</label>
+              <select name="supply-type-of-measurement" required class="form-control"> 
+                    <option value="">Select Measurement Type</option>
+                    <option value="kg">kg</option>
+                    <option value="g">g</option>
+                    <option value="L">L</option>
+                    <option value="ml">ml</option>
+                    <option value="box">box</option>
+                    <option value="meter">meter</option>
+                    <option value="piece">piece</option>
+              </select> 
             </div>
 
             <div class="mb-3">
               <label class="form-label">Supply Count</label>
-              <input type="number" step="0.01" min="0" max="999.99" class="form-control" name="supply-count" placeholder="0.00" required>
+              <input type="number" id="supply-count" step="0.01" min="0" max="999.99" class="form-control" name="supply-count" placeholder="0.00" required>
+            </div>
+
+              <div class="mb-3">
+              <label class="form-label">Date of Delivery</label>
+              <input type="date" class="form-control" name="date-of-delivery" required value="<%= new Date().toISOString().split('T')[0] %>">
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Save Supply</button>
@@ -75,6 +93,7 @@
                   <th>Name</th>
                   <th>Label</th>
                   <th>Type / Category</th>
+                  <th>Measurement</th>
                   <th>Count</th>
                   <th>Delivered At</th>
                 </tr>
@@ -86,6 +105,7 @@
                     <td><%= supply['supplier-name'] %></td>
                     <td><%= supply['supply-label'] %></td>
                     <td><%= supply['supply-type'] %> / <%= supply['supply-category'] %></td>
+                    <td><%= supply['supply-type-of-measurement'] %></td>
                     <td><%= supply['supply-count'] %></td>
                     <td><%= supply['date-of-delivery'] %></td>
                   </tr>
@@ -100,9 +120,8 @@
   </div>
 </div>
 
-
+  <script src="/script.js"></script>
 
 </body>
-
 
 </html>
