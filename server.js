@@ -1,4 +1,6 @@
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') }); // must be first
+ 
 const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
@@ -7,33 +9,30 @@ const supplier = require('./supplier');
 const Database = require('better-sqlite3');
 const SqliteStore = require('better-sqlite3-session-store')(session);
 const sessionDb = new Database(path.join(__dirname, 'db', 'sessions.db'));
-
+ 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-require('dotenv').config();
-
+ 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
-
-app.use(express.urlencoded({ extended: true })); 
-app.use(express.static(path.join(__dirname, 'public'))); 
-
+ 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+ 
 app.use(session({
-   store: new SqliteStore({
-       client: sessionDb,
-       expired: {
-         clear: true,
-         intervalMs: 1000 * 60 * 60 * 2 // clean up expired sessions every 2 hours
-       }
-     }),
+  store: new SqliteStore({
+    client: sessionDb,
+    expired: {
+      clear: true,
+      intervalMs: 1000 * 60 * 60 * 2 // clean up expired sessions every 2 hours
+    }
+  }),
   secret: process.env.SESSION_SECRET || 'cd431c6709305d2d2d17951d0800b34fe728c40a322af6b0c1984385ffc68d0f',
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 2 // 2 hours 
+    maxAge: 1000 * 60 * 60 * 2 // 2 hours
   }
 }));
 
@@ -160,8 +159,18 @@ app.post('/login', async (req, res) => {
       req.session.name = auth.name;
       req.session.email = auth.email;
       req.session.role = auth.role;
-
-      return res.redirect(auth.role === 'store-owner' ? '/store-owner' : auth.role === 'storage-manager' ? '/storage-manager' : '/cashier');
+      
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error('Session regenerate error:', err);
+          return res.redirect('/');
+        }
+        req.session.authId = auth.id;
+        req.session.name = auth.name;
+        req.session.email = auth.email;
+        req.session.role = auth.role;
+        return res.redirect(auth.role === 'store-owner' ? '/store-owner' : auth.role === 'storage-manager' ? '/storage-manager' : '/cashier');
+      });
     }
 
     req.session.login_error = 'Incorrect email or password';
