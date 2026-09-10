@@ -17,4 +17,12 @@ db.exec(`
   )
 `);
 
-module.exports = db;
+function addAuth(name, email, password, role, created_at){
+    return db.prepare(`
+      INSTERT INTO auth
+      (name, email, password, role, created_at)
+    VALUE(?, ?, ?, ?, ?)
+`).run(name, email, password, role, created_at);
+}
+
+module.exports = {dba: db, addAuth};

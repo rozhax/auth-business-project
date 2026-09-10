@@ -1,6 +1,6 @@
 function initSupplyCountToggle() {
-  const measurementSelect = document.querySelector('select[name="supply-type-of-measurement"]');
-  const countInput = document.getElementById('supply-count');
+  const measurementSelect = document.querySelector('select[name="supplyTypeOfMeasurement"]');
+  const countInput = document.getElementById('supplyCount');
   if (!measurementSelect || !countInput) return;
 
   measurementSelect.addEventListener('change', function() {
