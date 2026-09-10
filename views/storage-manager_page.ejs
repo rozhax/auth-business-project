@@ -21,22 +21,23 @@
           <form action="/supplier" method="post">
             <div class="mb-3">
               <label class="form-label">Name</label>
-              <input type="text" class="form-control" name="supplier-name" required placeholder="supplier name">
+              <input type="text" class="form-control" name="supplierName" required placeholder="supplier name">
             </div>
 
             <div class="mb-3">
               <label class="form-label">Supply Label</label>
-              <input type="text" class="form-control" name="supply-label" required placeholder="supply label">
+              <input type="text" class="form-control" name="supplyLabel" required placeholder="supply label">
             </div>
 
             <div class="mb-3">
               <label class="form-label">Supply Type</label>
-              <input type="text" class="form-control" name="supply-type" required placeholder="e.g. Perishable, Raw Material">
+              <input type="text" class="form-control" name="supplyType" required placeholder="e.g. Perishable, Raw Material">
             </div>
 
             <div class="mb-3">
               <label class="form-label">Supply Category</label>
-              <select name="supply-category" required class="form-control"> 
+              <select name="supplyCategory" required class="form-control"> 
+
                     <option value="">Select Category</option>
                     <option value="deli">Deli</option>
                     <option value="produce">produce</option>
@@ -45,12 +46,14 @@
                     <option value="frzen-food">Frozen Food</option>
                     <option value="baery">Bakery</option>
                     <option value="seafood">Seafood</option>
+
               </select> 
             </div>
 
             <div class="mb-3">
               <label class="form-label">Measurement Type</label>
-              <select name="supply-type-of-measurement" required class="form-control"> 
+              <select name="supplyTypeOfMeasurement" required class="form-control"> 
+
                     <option value="">Select Measurement Type</option>
                     <option value="kg">kg</option>
                     <option value="g">g</option>
@@ -58,18 +61,18 @@
                     <option value="ml">ml</option>
                     <option value="box">box</option>
                     <option value="meter">meter</option>
-                    <option value="piece">piece</option>
+                    
               </select> 
             </div>
 
             <div class="mb-3">
               <label class="form-label">Supply Count</label>
-              <input type="number" id="supply-count" step="0.01" min="0" max="999.99" class="form-control" name="supply-count" placeholder="0.00" required>
+              <input type="number" id="supplyCount" step="0.01" min="0" max="999.99" class="form-control" name="supply-count" placeholder="0.00" required>
             </div>
 
               <div class="mb-3">
               <label class="form-label">Date of Delivery</label>
-              <input type="date" class="form-control" name="date-of-delivery" required value="<%= new Date().toISOString().split('T')[0] %>">
+              <input type="date" class="form-control" name="dateOfDelivery" required value="<%= new Date().toISOString().split('T')[0] %>">
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Save Supply</button>
@@ -120,6 +123,7 @@
   </div>
 </div>
 
+  <script src="/supply-toggle.js"></script>
   <script src="/script.js"></script>
 
 </body>
