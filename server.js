@@ -4,7 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') }); // must be fir
 const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
-const db = require('./db');
+const { addAuth, getUserByEmail } = require('./db');
 const supplier = require('./supplier');
 const Database = require('better-sqlite3');
 const SqliteStore = require('better-sqlite3-session-store')(session);
@@ -120,7 +120,7 @@ app.post('/register', async (req, res) => {
   }
 //dont understand
   try {
-    const existing = db.prepare('SELECT id FROM auth WHERE email = ?').get(email);
+    const existing = getUserByEmail(email);
 
     if (existing) {
       req.session.register_error = 'Email is already registered!';
@@ -131,47 +131,30 @@ app.post('/register', async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    db.prepare(
-      'INSERT INTO auth (name, email, password, role) VALUES (?, ?, ?, ?)'
-    ).run(name, email, hashedPassword, role);
-
-    req.session.active_form = 'login';
-    return res.redirect('/');
-
-    // this is for the programmer only it shows error that sqlite detects because of throw catch system in sqlite3 
-    
-  } catch (err) {
+    addAuth(name, email, hashedPassword, role, new Date().toISOString());
+      req.session.active_form = 'login';
+        return res.redirect('/');
+    } catch (err) {
     console.error('Register error:', err);
     req.session.register_error = 'Something went wrong. Please try again.';
     req.session.active_form = 'register';
     return res.redirect('/');
-  }
-});
+}});
 
 
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const auth = db.prepare('SELECT * FROM auth WHERE email = ?').get(email);
+    const auth = getUserByEmail(email);
 
     if (auth && (await bcrypt.compare(password, auth.password))) {
+      await req.session.regenerate();
       req.session.authId = auth.id;
       req.session.name = auth.name;
       req.session.email = auth.email;
       req.session.role = auth.role;
-      
-      req.session.regenerate((err) => {
-        if (err) {
-          console.error('Session regenerate error:', err);
-          return res.redirect('/');
-        }
-        req.session.authId = auth.id;
-        req.session.name = auth.name;
-        req.session.email = auth.email;
-        req.session.role = auth.role;
-        return res.redirect(auth.role === 'store-owner' ? '/store-owner' : auth.role === 'storage-manager' ? '/storage-manager' : '/cashier');
-      });
+      return res.redirect(auth.role === 'store-owner' ? '/store-owner' : auth.role === 'storage-manager' ? '/storage-manager' : '/cashier');
     }
 
     req.session.login_error = 'Incorrect email or password';

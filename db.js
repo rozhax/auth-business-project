@@ -19,10 +19,15 @@ db.exec(`
 
 function addAuth(name, email, password, role, created_at){
     return db.prepare(`
-      INSTERT INTO auth
+      INSERT INTO auth
       (name, email, password, role, created_at)
-    VALUE(?, ?, ?, ?, ?)
-`).run(name, email, password, role, created_at);
+    VALUES (?, ?, ?, ?, ?)
+  `).run(name, email, password, role, created_at);
 }
 
-module.exports = {dba: db, addAuth};
+function getUserByEmail(email) {
+  return db.prepare('SELECT * FROM auth WHERE email = ?').get(email);
+}
+
+
+module.exports = {dba: db, addAuth, getUserByEmail};
