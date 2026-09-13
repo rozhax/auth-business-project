@@ -5,7 +5,7 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const { addAuth, getUserByEmail } = require('./db');
-const supplier = require('./supplier');
+const { addSupply, getAllSupplies } = require('./supplier');
 const Database = require('better-sqlite3');
 const SqliteStore = require('better-sqlite3-session-store')(session);
 const sessionDb = new Database(path.join(__dirname, 'db', 'sessions.db'));
@@ -75,8 +75,19 @@ app.get('/cashier', requireLogin('cashier'), (req, res) => {
 
 //study from here for supply 
 app.get('/storage-manager', requireLogin('storage-manager'), (req, res) => {
-  const supplies = supplier.getAllSupplies();
+  const supplies = getAllSupplies();
   res.render('storage-manager_page', { name: req.session.name, supplies });
+});
+
+//API of supplier 
+app.get('/supplies', requireLogin('storage-manager'), (req, res) => {
+  try {
+    const supplies = getAllSupplies();
+    res.json(supplies);
+  } catch (err) {
+    console.error('Fetch supplies error:', err);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
 });
 
 // so /supplier is from line 6 that initializes the path
@@ -95,7 +106,7 @@ app.post('/supplier', requireLogin('storage-manager'), (req, res) => {
   }
 
   try {
-    supplier.addSupply({ supplierName, supplyLabel, supplyType, supplyCategory, supplyTypeOfMeasurement, supplyCount, dateOfDelivery });
+    addSupply({ supplierName, supplyLabel, supplyType, supplyCategory, supplyTypeOfMeasurement, supplyCount, dateOfDelivery });
     res.redirect('/storage-manager');
   } catch (err) {
     console.error('Supplier insert error:', err);
@@ -149,11 +160,26 @@ app.post('/login', async (req, res) => {
     const auth = getUserByEmail(email);
 
     if (auth && (await bcrypt.compare(password, auth.password))) {
-      await req.session.regenerate();
       req.session.authId = auth.id;
       req.session.name = auth.name;
       req.session.email = auth.email;
       req.session.role = auth.role;
+
+      try {
+        await new Promise((resolve, reject) => {
+          req.session.regenerate((err) => {
+            if (err) return reject(err);
+            req.session.authId = auth.id;
+            req.session.name = auth.name;
+            req.session.email = auth.email;
+            req.session.role = auth.role;
+            resolve();
+          });
+        });
+      } catch (err) {
+        console.error('Session regenerate error:', err);
+      }
+
       return res.redirect(auth.role === 'store-owner' ? '/store-owner' : auth.role === 'storage-manager' ? '/storage-manager' : '/cashier');
     }
 

@@ -123,6 +123,37 @@
   </div>
 </div>
 
+
+  <script>
+async function loadSupplies() {
+  try {
+    const res = await fetch('/supplies');
+    if (!res.ok) throw new Error('Failed to load supplies');
+    const supplies = await res.json();
+
+    const tbody = document.getElementById('supplyTableBody');
+    tbody.innerHTML = '';
+
+    supplies.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${s.id}</td>
+        <td>${s['supplier-name']}</td>
+        <td>${s['supply-label']}</td>
+        <td>${s['supply-type']} / ${s['supply-category']}</td>
+        <td>${s['supply-count']}</td>
+        <td>${s['date-of-delivery']}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadSupplies);
+</script>
+
   <script src="/supply-toggle.js"></script>
   <script src="/script.js"></script>
 
