@@ -70,6 +70,13 @@
               <input type="number" id="supplyCount" step="0.01" min="0" max="999.99" class="form-control" name="supply-count" placeholder="0.00" required>
             </div>
 
+
+            <div class="mb-3">
+              <label class="form-label">Supply Price</label>
+              <input type="number" id="suppierPrice" step="0.01" min="0" max="999.99" class="form-control" name="supplier-price" placeholder="0.00" required>
+            </div>
+
+
               <div class="mb-3">
               <label class="form-label">Date of Delivery</label>
               <input type="date" class="form-control" name="dateOfDelivery" required value="<%= new Date().toISOString().split('T')[0] %>">
@@ -97,6 +104,7 @@
                   <th>Label</th>
                   <th>Type / Category</th>
                   <th>Measurement</th>
+                  <th>Price</th>
                   <th>Count</th>
                   <th>Delivered At</th>
                 </tr>
@@ -109,6 +117,7 @@
                     <td><%= supply['supply-label'] %></td>
                     <td><%= supply['supply-type'] %> / <%= supply['supply-category'] %></td>
                     <td><%= supply['supply-type-of-measurement'] %></td>
+                    <td><%= supply['supplier-price'] %></td>
                     <td><%= supply['supply-count'] %></td>
                     <td><%= supply['date-of-delivery'] %></td>
                   </tr>
