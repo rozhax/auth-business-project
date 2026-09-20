@@ -52,12 +52,21 @@ function flash(req, key) {
   return val || '';
 }
 
+function pop(req, key) {
+  const val = req.session[key];
+  delete req.session[key];
+  return val;
+}
+
 
 app.get('/', (req, res) => {
   res.render('display', {
     loginError: flash(req, 'login_error'),
     registerError: flash(req, 'register_error'),
-    activeForm: flash(req, 'active_form') || 'login'
+    activeForm: flash(req, 'active_form') || 'login',
+    formData: pop(req, 'register_form_data') || {},
+    loginFormData: pop(req, 'login_form_data') || {},
+    successMessage: flash(req, 'success_message')
   });
 });
 
@@ -292,6 +301,7 @@ app.post('/register', async (req, res) => {
   if (!name || !email || !password || !role) {
     req.session.register_error = 'All fields are required.';
     req.session.active_form = 'register';
+    req.session.register_form_data = { name, email, role };
     return res.redirect('/');
   }
 
@@ -301,18 +311,22 @@ app.post('/register', async (req, res) => {
     if (existing) {
       req.session.register_error = 'Email is already registered!';
       req.session.active_form = 'register';
+      req.session.register_form_data = { name, email, role };
       return res.redirect('/');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     addAuth(name, email, hashedPassword, role, new Date().toISOString());
+    req.session.success_message = 'Registration successful! Please log in.';
     req.session.active_form = 'login';
+    req.session.register_form_data = { email };
     return res.redirect('/');
   } catch (err) {
     console.error('Register error:', err);
     req.session.register_error = 'Something went wrong. Please try again.';
     req.session.active_form = 'register';
+    req.session.register_form_data = { name, email, role };
     return res.redirect('/');
   }
 });
@@ -345,6 +359,7 @@ app.post('/login', async (req, res) => {
 
     req.session.login_error = 'Incorrect email or password';
     req.session.active_form = 'login';
+    req.session.login_form_data = { email };
     return res.redirect('/');
   } catch (err) {
     console.error('Login error:', err);

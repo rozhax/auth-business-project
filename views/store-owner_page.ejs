@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>store owner Page</title>
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/register.css">
 </head>
 
 <body style="background-color: #ffff;">
@@ -16,6 +17,33 @@
     <button onclick="window.location.href='/logout'">Logout</button>
   </div>
 
+  <div class="register-wrap">
+    <div class="register-card">
+      <h2>Totals</h2>
+      <label class="reg-label">Date</label>
+      <input type="date" id="date-picker">
+
+      <div class="totals-row">
+        <div class="total-pill">Cash<br><span id="cash-total">$0.00</span></div>
+        <div class="total-pill">Card<br><span id="card-total">$0.00</span></div>
+        <div class="total-pill grand">Total<br><span id="grand-total">$0.00</span></div>
+      </div>
+    </div>
+
+    <div class="register-card">
+      <h2>All Sales</h2>
+      <table class="sales-table">
+        <thead>
+          <tr><th>Item</th><th>Price</th><th>Method</th><th>Cashier</th><th>Time</th></tr>
+        </thead>
+        <tbody id="sales-body">
+          <tr><td colspan="5">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/register.js"></script>
 </body>
 
 </html>
