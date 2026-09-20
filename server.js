@@ -6,6 +6,7 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const { addAuth, getUserByEmail } = require('./db');
 const { addSupply, getSuppliesByUser, getHistoryByUser } = require('./supplier');
+const sales = require('./sales');
 const Database = require('better-sqlite3');
 const SqliteStore = require('better-sqlite3-session-store')(session);
 const sessionDb = new Database(path.join(__dirname, 'db', 'sessions.db'));
@@ -16,22 +17,30 @@ const PORT = process.env.PORT || 3000;
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+// Trust the reverse proxy (needed for `cookie.secure` to work correctly
+// when the app sits behind a load balancer / reverse proxy in production).
+app.set('trust proxy', 1);
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+const isProd = process.env.NODE_ENV === 'production';
+
 app.use(session({
-  store: new SqliteStore({
-    client: sessionDb,
-    expired: {
-      clear: true,
-      intervalMs: 1000 * 60 * 60 * 2 // clean up expired sessions every 2 hours
-    }
-  }),
+   store: new SqliteStore({
+       client: sessionDb,
+       expired: {
+         clear: true,
+         intervalMs: 1000 * 60 * 60 * 2 // clean up expired sessions every 2 hours
+       }
+     }),
   secret: process.env.SESSION_SECRET || 'cd431c6709305d2d2d17951d0800b34fe728c40a322af6b0c1984385ffc68d0f',
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
+    sameSite: 'lax',   // mitigates cross-site request forgery on the auth cookie
+    secure: isProd,    // requires HTTPS in production; keep false for local http dev
     maxAge: 1000 * 60 * 60 * 2 // 2 hours
   }
 }));
@@ -60,12 +69,22 @@ app.get('/logout', (req, res) => {
   });
 });
 
-function requireLogin(role) {
+// Accepts one or more allowed roles: requireLogin() just checks you're
+// logged in, requireLogin('cashier') checks you're logged in AND a cashier,
+// requireLogin('store-owner', 'storage-manager') allows either.
+function requireLogin(...roles) {
   return (req, res, next) => {
     if (!req.session.authId) return res.redirect('/');
-    if (role && req.session.role !== role) return res.redirect('/');
+    if (roles.length && !roles.includes(req.session.role)) return res.redirect('/');
     next();
   };
+}
+
+// Strict YYYY-MM-DD validator used everywhere a date comes in from the
+// client (query params), so a malformed value can never reach the SQL layer.
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+function resolveDate(value) {
+  return DATE_RE.test(value) ? value : new Date().toISOString().slice(0, 10);
 }
 
 
@@ -140,6 +159,131 @@ app.get('/history', requireLogin('storage-manager'), (req, res) => {
 app.get('/store-owner', requireLogin('store-owner'), (req, res) => {
   res.render('store-owner_page', { name: req.session.name });
 });
+
+
+app.post('/sales', requireLogin('cashier'), (req, res) => {
+  const { itemName, soldPrice, paymentMethod } = req.body;
+
+  // 1. Presence check
+  if (!itemName || soldPrice === undefined || soldPrice === null || !paymentMethod) {
+    req.session.sale_error = 'All fields are required.';
+    return res.redirect('/cashier');
+  }
+
+  // 2. Whitelist the payment method server-side — never trust the <select>
+  //    the browser sent. This backs up the CHECK constraint in sales.js.
+  if (paymentMethod !== 'cash' && paymentMethod !== 'card') {
+    req.session.sale_error = 'Invalid payment method.';
+    return res.redirect('/cashier');
+  }
+
+  // 3. Validate the price: must be a finite positive number, at most 2
+  //    decimal places, within a sane upper bound.
+  const priceRegex = /^\d{1,7}(\.\d{1,2})?$/;
+  if (typeof soldPrice !== 'string' || !priceRegex.test(soldPrice.trim())) {
+    req.session.sale_error = 'Enter a valid price (e.g. 12.99).';
+    return res.redirect('/cashier');
+  }
+  const price = Number(soldPrice);
+  if (!Number.isFinite(price) || price <= 0 || price > 999999.99) {
+    req.session.sale_error = 'Price must be between 0.01 and 999999.99.';
+    return res.redirect('/cashier');
+  }
+
+  // 4. Trim/cap free-text field length to keep the DB and UI sane.
+  const cleanItemName = String(itemName).trim().slice(0, 200);
+  if (!cleanItemName) {
+    req.session.sale_error = 'Item name is required.';
+    return res.redirect('/cashier');
+  }
+
+  try {
+    // Parameterized statement — no string concatenation, so this is not
+    // vulnerable to SQL injection regardless of what the client sends.
+    sales.prepare(
+      `INSERT INTO sales (item_name, sold_price, payment_method, cashier_id, cashier_name)
+       VALUES (?, ?, ?, ?, ?)`
+    ).run(cleanItemName, price.toFixed(2), paymentMethod, req.session.authId, req.session.name);
+
+    res.redirect('/cashier');
+  } catch (err) {
+    console.error('Sale insert error:', err);
+    req.session.sale_error = 'Something went wrong recording that sale.';
+    res.redirect('/cashier');
+  }
+});
+
+
+// JSON API: list sales for a given day.
+// - cashiers only ever see their own sales (their register, not the store's)
+// - storage-manager / store-owner see the whole store's sales for that day
+app.get('/api/sales', requireLogin('cashier', 'storage-manager', 'store-owner'), (req, res) => {
+  const date = resolveDate(req.query.date);
+
+  let rows;
+  if (req.session.role === 'cashier') {
+    rows = sales.prepare(
+      `SELECT id, item_name, sold_price, payment_method, sale_date
+       FROM sales
+       WHERE date(sale_date) = ? AND cashier_id = ?
+       ORDER BY sale_date DESC
+       LIMIT 200`
+    ).all(date, req.session.authId);
+  } else {
+    rows = sales.prepare(
+      `SELECT id, item_name, sold_price, payment_method, cashier_name, sale_date
+       FROM sales
+       WHERE date(sale_date) = ?
+       ORDER BY sale_date DESC
+       LIMIT 500`
+    ).all(date);
+  }
+
+  res.json({ date, scope: req.session.role === 'cashier' ? 'own' : 'store', sales: rows });
+});
+
+
+// JSON API: cash vs card totals for a given day (computed with SQL SUM/
+// GROUP BY rather than pulled row-by-row into JS — cheap even as the
+// sales table grows, and the arithmetic never leaves the database).
+app.get('/api/sales/totals', requireLogin('cashier', 'storage-manager', 'store-owner'), (req, res) => {
+  const date = resolveDate(req.query.date);
+  const scopedToCashier = req.session.role === 'cashier';
+
+  const totals = scopedToCashier
+    ? sales.prepare(
+        `SELECT payment_method, COUNT(*) AS count, SUM(sold_price) AS total
+         FROM sales WHERE date(sale_date) = ? AND cashier_id = ?
+         GROUP BY payment_method`
+      ).all(date, req.session.authId)
+    : sales.prepare(
+        `SELECT payment_method, COUNT(*) AS count, SUM(sold_price) AS total
+         FROM sales WHERE date(sale_date) = ?
+         GROUP BY payment_method`
+      ).all(date);
+
+  const result = {
+    date,
+    scope: scopedToCashier ? 'own' : 'store',
+    cash: 0, cashCount: 0,
+    card: 0, cardCount: 0,
+    grandTotal: 0
+  };
+
+  for (const row of totals) {
+    if (row.payment_method === 'cash') { result.cash = row.total || 0; result.cashCount = row.count; }
+    if (row.payment_method === 'card') { result.card = row.total || 0; result.cardCount = row.count; }
+  }
+  result.grandTotal = Number((result.cash + result.card).toFixed(2));
+
+  res.json(result);
+});
+
+
+// Full accounting dashboard page — store owner only.
+app.get('/accounting', requireLogin('store-owner'), (req, res) => {
+  res.render('accounting_page', { name: req.session.name });
+});  
 
 
 app.post('/register', async (req, res) => {

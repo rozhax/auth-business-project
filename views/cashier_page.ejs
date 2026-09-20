@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>cashier Page</title>
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/register.css">
 </head>
 
 <body style="background-color: #ffff;">
@@ -16,6 +17,46 @@
     <button onclick="window.location.href='/logout'">Logout</button>
   </div>
 
+  <div class="register-wrap">
+    <div class="register-card">
+      <h2>Record a Sale</h2>
+      <form action="/sales" method="post" id="sale-form">
+        <label class="reg-label">Item</label>
+        <input type="text" name="itemName" maxlength="200" placeholder="Item name" required>
+
+        <label class="reg-label">Sold Price</label>
+        <input type="number" name="soldPrice" step="0.01" min="0.01" max="999999.99" placeholder="0.00" required>
+
+        <label class="reg-label">Payment Method</label>
+        <select name="paymentMethod" required>
+          <option value="">Select payment method</option>
+          <option value="cash">Cash</option>
+          <option value="card">Card</option>
+        </select>
+
+        <button type="submit">Add Sale</button>
+      </form>
+    </div>
+
+    <div class="register-card">
+      <h2>Today's Register</h2>
+      <div class="totals-row">
+        <div class="total-pill">Cash<br><span id="cash-total">$0.00</span></div>
+        <div class="total-pill">Card<br><span id="card-total">$0.00</span></div>
+        <div class="total-pill grand">Total<br><span id="grand-total">$0.00</span></div>
+      </div>
+      <table class="sales-table">
+        <thead>
+          <tr><th>Item</th><th>Price</th><th>Method</th><th>Time</th></tr>
+        </thead>
+        <tbody id="sales-body">
+          <tr><td colspan="4">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/register.js"></script>
 </body>
 
 </html>

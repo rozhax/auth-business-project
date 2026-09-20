@@ -112,3 +112,86 @@ span {
   width: 300px;
   margin: 0 auto;
 }
+
+.register-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  padding: 20px;
+}
+
+.register-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.register-card h2 {
+  font-size: 22px;
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.reg-label {
+  display: block;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.register-card input,
+.register-card select {
+  margin-bottom: 16px;
+}
+
+.totals-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.total-pill {
+  flex: 1;
+  background: #eee;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  font-size: 13px;
+  color: #555;
+}
+
+.total-pill span {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.total-pill.grand {
+  background: #7494ec;
+  color: #fff;
+}
+
+.total-pill.grand span {
+  color: #fff;
+}
+
+.sales-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.sales-table th,
+.sales-table td {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid #eee;
+}
+
+#date-picker {
+  margin-bottom: 16px;
+}
