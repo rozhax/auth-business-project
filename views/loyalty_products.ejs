@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loyalty - Products</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/loyalty.css">
+</head>
+<body>
+  <div class="loyalty-container">
+    <div class="loyalty-card">
+      <h2>Product Catalog</h2>
+      <p>Earn 1 point per $1 spent.</p>
+      <a href="/loyalty/dashboard">Back to Dashboard</a>
+    </div>
+
+    <div class="loyalty-card">
+      <% if (products.length === 0) { %>
+        <p>No products available.</p>
+      <% } else { %>
+        <table class="loyalty-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>SKU</th>
+              <th>Category</th>
+              <th>Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% products.forEach(p => { %>
+              <tr>
+                <td><%= p.name %></td>
+                <td><%= p.sku || '-' %></td>
+                <td><%= p.category || '-' %></td>
+                <td>$<%= Number(p.price).toFixed(2) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

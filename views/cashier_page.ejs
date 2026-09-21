@@ -17,10 +17,22 @@
     <button onclick="window.location.href='/logout'">Logout</button>
   </div>
 
+  <% if (success) { %>
+    <p class="success-message"><%= success %></p>
+  <% } %>
+  <% if (error) { %>
+    <p class="error-message"><%= error %></p>
+  <% } %>
+
   <div class="register-wrap">
     <div class="register-card">
       <h2>Record a Sale</h2>
       <form action="/sales" method="post" id="sale-form">
+        <label class="reg-label">Customer (optional)</label>
+        <input type="text" id="customer-search" placeholder="Search customer by name..." autocomplete="off">
+        <input type="hidden" name="customerId" id="customer-id" value="">
+        <div id="customer-search-results" style="position: relative;"></div>
+
         <label class="reg-label">Item</label>
         <input type="text" name="itemName" maxlength="200" placeholder="Item name" required>
 
@@ -36,6 +48,13 @@
 
         <button type="submit">Add Sale</button>
       </form>
+      <p style="text-align: center; margin-top: 10px;">
+        <a href="/cashier/register-customer" style="color: #7494ec; text-decoration: none;">
+          <button type="button" style="background: #7494ec; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-top: 8px;">
+            Customer not in system? Register them
+          </button>
+        </a>
+      </p>
     </div>
 
     <div class="register-card">
@@ -47,10 +66,10 @@
       </div>
       <table class="sales-table">
         <thead>
-          <tr><th>Item</th><th>Price</th><th>Method</th><th>Time</th></tr>
+          <tr><th>Customer</th><th>Item</th><th>Price</th><th>Method</th><th>Time</th></tr>
         </thead>
         <tbody id="sales-body">
-          <tr><td colspan="4">Loading…</td></tr>
+          <tr><td colspan="5">Loading…</td></tr>
         </tbody>
       </table>
     </div>

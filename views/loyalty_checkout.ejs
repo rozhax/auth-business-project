@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loyalty - Checkout</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/loyalty.css">
+</head>
+<body>
+  <div class="loyalty-container">
+    <div class="loyalty-card">
+      <h2>Checkout</h2>
+      <p>Cashier: <strong><%= cashierName %></strong></p>
+      <p>Date: <%= new Date().toLocaleDateString() %></p>
+    </div>
+
+    <div class="loyalty-card">
+      <h3>Customer Lookup</h3>
+      <form action="/loyalty/checkout" method="get" id="lookup-form">
+        <input type="email" name="customerEmail" placeholder="Customer email" value="<%= customerEmail || '' %>" required>
+        <button type="submit">Lookup</button>
+      </form>
+
+      <% if (customer) { %>
+        <div class="customer-info">
+          <p><strong><%= customer.name %></strong></p>
+          <p>Email: <%= customer.email %></p>
+          <p>Points: <%= customer.points_balance %></p>
+          <p>Tier: <%= customer.tier %></p>
+        </div>
+      <% } %>
+    </div>
+
+    <% if (customer) { %>
+    <div class="loyalty-card">
+      <h3>Process Sale</h3>
+      <form action="/loyalty/checkout" method="post" id="checkout-form">
+        <input type="hidden" name="customerId" value="<%= customer.id %>">
+        <input type="hidden" name="customerEmail" value="<%= customer.email %>">
+
+        <label class="reg-label">Select Product</label>
+        <select name="productId" required>
+          <option value="">Choose product</option>
+          <% products.forEach(p => { %>
+            <option value="<%= p.id %>"><%= p.name %> - $<%= Number(p.price).toFixed(2) %></option>
+          <% }) %>
+        </select>
+
+        <label class="reg-label">Quantity</label>
+        <input type="number" name="quantity" min="1" value="1" required>
+
+        <label class="reg-label">Redeem Points (optional)</label>
+        <input type="number" name="redeemPoints" min="0" step="100" value="0" placeholder="0">
+
+        <button type="submit">Complete Sale</button>
+      </form>
+    </div>
+    <% } %>
+  </div>
+</body>
+</html>

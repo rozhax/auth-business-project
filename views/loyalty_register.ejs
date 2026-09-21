@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loyalty - Customer Login</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/loyalty.css">
+</head>
+<body>
+  <div class="loyalty-container">
+    <div id="login-form" class="form-box <%= activeForm === 'login' ? 'active' : '' %>">
+      <form action="/loyalty/login" method="post">
+        <h2>Customer Login</h2>
+        <% if (loginError) { %>
+          <p class="error-message"><%= loginError %></p>
+        <% } %>
+        <input type="email" name="email" placeholder="Email" value="<%= loginFormData.email || '' %>" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+        <p>Don't have an account? <a href="javascript:void(0)" onclick="ShowForm('register-form')">Register</a></p>
+      </form>
+    </div>
+
+    <div id="register-form" class="form-box <%= activeForm === 'register' ? 'active' : '' %>">
+      <form action="/loyalty/register" method="post">
+        <h2>Join Loyalty</h2>
+        <% if (registerError) { %>
+          <p class="error-message"><%= registerError %></p>
+        <% } %>
+        <% if (success) { %>
+          <p class="success-message"><%= success %></p>
+        <% } %>
+        <input type="text" name="name" placeholder="Full Name" value="<%= formData.name || '' %>" required>
+        <input type="email" name="email" placeholder="Email" value="<%= formData.email || '' %>" required>
+        <input type="tel" name="phone" placeholder="Phone (optional)" value="<%= formData.phone || '' %>">
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Create Account</button>
+        <p>Already have an account? <a href="javascript:void(0)" onclick="ShowForm('login-form')">Login</a></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>

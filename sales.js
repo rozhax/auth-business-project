@@ -17,14 +17,25 @@ salesDb.exec(`
     payment_method TEXT NOT NULL CHECK (payment_method IN ('cash', 'card')),
     cashier_id    INTEGER NOT NULL,
     cashier_name  TEXT NOT NULL,
+    customer_id   INTEGER,
+    customer_name TEXT,
     sale_date     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
   )
 `);
 
-//creates an index for the salse_date and names it idx_sales_date and the expression index date() is for
-//the date by day not full time stamp  
+try {
+  salesDb.exec(`ALTER TABLE sales ADD COLUMN customer_id INTEGER`);
+} catch (e) {
+  // column already exists
+}
+try {
+  salesDb.exec(`ALTER TABLE sales ADD COLUMN customer_name TEXT`);
+} catch (e) {
+  // column already exists
+}
+
 salesDb.exec(`CREATE INDEX IF NOT EXISTS idx_sales_date ON sales (date(sale_date))`);
-//creates and index for the cashier_id and sale_date 
 salesDb.exec(`CREATE INDEX IF NOT EXISTS idx_sales_cashier_date ON sales (cashier_id, date(sale_date))`);
+salesDb.exec(`CREATE INDEX IF NOT EXISTS idx_sales_customer_id ON sales (customer_id)`);
 
 module.exports = salesDb;

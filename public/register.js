@@ -26,7 +26,7 @@
     if (!rows.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
-      td.colSpan = isAccountingPage ? 5 : 4;
+      td.colSpan = isAccountingPage ? 6 : 5;
       td.textContent = 'No sales yet.';
       tr.appendChild(td);
       salesBody.appendChild(tr);
@@ -37,6 +37,7 @@
       const tr = document.createElement('tr');
 
       const cells = [
+        row.customer_name || '-',
         row.item_name,
         money(row.sold_price),
         row.payment_method,
@@ -75,7 +76,7 @@
       salesBody.innerHTML = '';
       const tr = document.createElement('tr');
       const td = document.createElement('td');
-      td.colSpan = isAccountingPage ? 5 : 4;
+      td.colSpan = isAccountingPage ? 6 : 5;
       td.textContent = 'Could not load sales data.';
       tr.appendChild(td);
       salesBody.appendChild(tr);
@@ -88,7 +89,62 @@
   }
 
   loadSales();
-  // Refresh periodically so the register/accounting view stays current
-  // without needing a manual page reload.
   setInterval(loadSales, 15000);
+
+  // Customer search for the cashier sale form
+  const customerSearch = document.getElementById('customer-search');
+  const customerIdInput = document.getElementById('customer-id');
+  const searchResults = document.getElementById('customer-search-results');
+
+  if (customerSearch) {
+    let debounceTimer;
+    customerSearch.addEventListener('input', function () {
+      clearTimeout(debounceTimer);
+      const query = this.value.trim();
+      customerIdInput.value = '';
+      searchResults.innerHTML = '';
+
+      if (!query) return;
+
+      debounceTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/customers/search?q=${encodeURIComponent(query)}`);
+          if (!res.ok) throw new Error('Search failed');
+          const customers = await res.json();
+
+          if (!customers.length) {
+            searchResults.innerHTML = '<div style="padding: 8px; background: #eee; border-radius: 4px; margin-top: 4px; font-size: 14px;">No customers found</div>';
+            return;
+          }
+
+          const ul = document.createElement('div');
+          ul.style.cssText = 'position: absolute; background: #fff; border: 1px solid #ccc; border-radius: 4px; max-height: 200px; overflow-y: auto; width: 100%; z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,0.15);';
+
+          customers.forEach(c => {
+            const item = document.createElement('div');
+            item.style.cssText = 'padding: 10px; cursor: pointer; font-size: 14px; border-bottom: 1px solid #f0f0f0;';
+            item.textContent = `${c.name} (${c.email})`;
+            item.addEventListener('click', () => {
+              customerSearch.value = c.name;
+              customerIdInput.value = c.id;
+              searchResults.innerHTML = '';
+            });
+            item.addEventListener('mouseenter', () => { item.style.background = '#f5f5f5'; });
+            item.addEventListener('mouseleave', () => { item.style.background = '#fff'; });
+            ul.appendChild(item);
+          });
+
+          searchResults.appendChild(ul);
+        } catch (err) {
+          console.error('Customer search error:', err);
+        }
+      }, 200);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (e.target !== customerSearch && e.target !== searchResults) {
+        searchResults.innerHTML = '';
+      }
+    });
+  }
 })();

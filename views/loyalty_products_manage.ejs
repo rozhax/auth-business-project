@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loyalty - Manage Products</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/loyalty.css">
+</head>
+<body>
+  <div class="loyalty-container">
+    <div class="loyalty-card">
+      <h2>Manage Products</h2>
+      <a href="/store-owner">Back to Store Owner</a>
+    </div>
+
+    <div class="loyalty-card">
+      <h3>Add Product</h3>
+      <form action="/loyalty/store-owner/products" method="post">
+        <input type="text" name="name" placeholder="Product name" required>
+        <input type="text" name="sku" placeholder="SKU (optional)">
+        <input type="text" name="category" placeholder="Category">
+        <input type="number" name="price" step="0.01" min="0" placeholder="0.00" required>
+        <button type="submit">Add Product</button>
+      </form>
+    </div>
+
+    <div class="loyalty-card">
+      <h3>All Products</h3>
+      <% if (products.length === 0) { %>
+        <p>No products yet.</p>
+      <% } else { %>
+        <table class="loyalty-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>SKU</th>
+              <th>Category</th>
+              <th>Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% products.forEach(p => { %>
+              <tr>
+                <td><%= p.id %></td>
+                <td><%= p.name %></td>
+                <td><%= p.sku || '-' %></td>
+                <td><%= p.category || '-' %></td>
+                <td>$<%= Number(p.price).toFixed(2) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

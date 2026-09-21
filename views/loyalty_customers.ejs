@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loyalty - Customers</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/loyalty.css">
+</head>
+<body>
+  <div class="loyalty-container">
+    <div class="loyalty-card">
+      <h2>Customer Management</h2>
+      <a href="/store-owner">Back to Store Owner</a>
+    </div>
+
+    <div class="loyalty-card">
+      <h3>Adjust Points</h3>
+      <form action="/loyalty/store-owner/customers/adjust" method="post">
+        <input type="number" name="customerId" placeholder="Customer ID" required>
+        <input type="number" name="points" placeholder="Points delta (e.g. 50 or -50)" required>
+        <input type="text" name="note" placeholder="Note">
+        <button type="submit">Adjust</button>
+      </form>
+      <% if (adjustError) { %>
+        <p class="error-message"><%= adjustError %></p>
+      <% } %>
+      <% if (adjustSuccess) { %>
+        <p class="success-message"><%= adjustSuccess %></p>
+      <% } %>
+    </div>
+
+    <div class="loyalty-card">
+      <h3>All Customers</h3>
+      <% if (customers.length === 0) { %>
+        <p>No customers yet.</p>
+      <% } else { %>
+        <table class="loyalty-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Points</th>
+              <th>Tier</th>
+              <th>Joined</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% customers.forEach(c => { %>
+              <tr>
+                <td><%= c.id %></td>
+                <td><%= c.name %></td>
+                <td><%= c.email %></td>
+                <td><%= c.phone || '-' %></td>
+                <td><%= c.points_balance %></td>
+                <td><span class="tier-badge tier-<%= c.tier %>"><%= c.tier %></span></td>
+                <td><%= new Date(c.created_at).toLocaleDateString() %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>
