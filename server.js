@@ -6,6 +6,15 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const { addAuth, getUserByEmail } = require('./db');
 const { addSupply, getSuppliesByUser, getHistoryByUser } = require('./supplier');
+const {
+  REWARDS,
+  addCustomer,
+  getCustomer,
+  getCustomers,
+  getTransactions,
+  earnPoints,
+  redeemPoints
+} = require('./loyalty');
 const Database = require('better-sqlite3');
 const SqliteStore = require('better-sqlite3-session-store')(session);
 const sessionDb = new Database(path.join(__dirname, 'db', 'sessions.db'));
@@ -17,6 +26,8 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.urlencoded({ extended: true }));
+// The loyalty desk talks to the API with fetch + JSON bodies.
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
@@ -68,9 +79,29 @@ function requireLogin(role) {
   };
 }
 
+// API flavour of requireLogin: fetch() callers need a status code they can
+// react to, not an HTML redirect to the login page.
+function requireApiLogin(role) {
+  return (req, res, next) => {
+    if (!req.session.authId) return res.status(401).json({ error: 'Not signed in.' });
+    if (role && req.session.role !== role) {
+      return res.status(403).json({ error: 'This action is for cashiers.' });
+    }
+    next();
+  };
+}
+
+// Handlers throw errors carrying a status (see loyalty.js); this keeps every
+// loyalty response a predictable JSON shape.
+function sendLoyaltyError(res, err) {
+  const status = err.status || 500;
+  if (status >= 500) console.error('Loyalty error:', err);
+  res.status(status).json({ error: err.message || 'Something went wrong.' });
+}
+
 
 app.get('/cashier', requireLogin('cashier'), (req, res) => {
-  res.render('cashier_page', { name: req.session.name });
+  res.render('cashier_page', { name: req.session.name, rewards: REWARDS });
 });
 
 // storage-manager page: just render the shell. The table itself is filled
@@ -134,6 +165,83 @@ app.get('/history', requireLogin('storage-manager'), (req, res) => {
   } catch (err) {
     console.error('Fetch history error:', err);
     res.status(500).json({ error: 'Something went wrong.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Loyalty program — staffed from the cashier desk.
+// Every write is attributed to the signed-in cashier from the session, so a
+// client can't claim points were handed out by someone else.
+// ---------------------------------------------------------------------------
+
+// Customer lookup backing the cashier's search box (?q= matches name/email/phone).
+app.get('/api/loyalty/customers', requireApiLogin('cashier'), (req, res) => {
+  try {
+    res.json({ customers: getCustomers(req.query.q) });
+  } catch (err) {
+    sendLoyaltyError(res, err);
+  }
+});
+
+app.post('/api/loyalty/customers', requireApiLogin('cashier'), (req, res) => {
+  try {
+    const customer = addCustomer(req.body || {});
+    res.status(201).json({ customer, message: `${customer.name} enrolled in the loyalty program.` });
+  } catch (err) {
+    sendLoyaltyError(res, err);
+  }
+});
+
+// One customer plus their full earn/redeem history.
+app.get('/api/loyalty/customers/:id', requireApiLogin('cashier'), (req, res) => {
+  try {
+    const customer = getCustomer(req.params.id);
+    if (!customer) return res.status(404).json({ error: 'Customer not found.' });
+    res.json({ customer, transactions: getTransactions(customer.id) });
+  } catch (err) {
+    sendLoyaltyError(res, err);
+  }
+});
+
+app.post('/api/loyalty/earn', requireApiLogin('cashier'), (req, res) => {
+  try {
+    const { customerId, points, note } = req.body || {};
+    const customer = earnPoints({
+      customerId,
+      points,
+      note,
+      cashierId: req.session.authId,
+      cashierName: req.session.name
+    });
+
+    res.json({
+      customer,
+      transactions: getTransactions(customer.id),
+      message: `Added ${Number(points)} points to ${customer.name} — balance is now ${customer.points}.`
+    });
+  } catch (err) {
+    sendLoyaltyError(res, err);
+  }
+});
+
+app.post('/api/loyalty/redeem', requireApiLogin('cashier'), (req, res) => {
+  try {
+    const { customerId, points, note } = req.body || {};
+    const customer = redeemPoints({
+      customerId,
+      points,
+      note,
+      cashierId: req.session.authId,
+      cashierName: req.session.name
+    });
+
+    res.json({
+      customer,
+      transactions: getTransactions(customer.id),
+      message: `Redeemed ${Number(points)} points for ${customer.name} — balance is now ${customer.points}.`
+    });
+  } catch (err) {
+    sendLoyaltyError(res, err);
   }
 });
 

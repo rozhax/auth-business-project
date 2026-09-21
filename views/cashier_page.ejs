@@ -4,18 +4,146 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>cashier Page</title>
+  <title>Cashier · Loyalty Desk</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 
-<body style="background-color: #ffff;">
+<body class="loyalty-body">
 
-  <div class="box">
-    <h1>Welcome, <span><%= name %></span></h1>
-    <p>This is an <span>Cashier</span> page</p>
-    <button onclick="window.location.href='/logout'">Logout</button>
-  </div>
+  <header class="loyalty-header">
+    <div class="loyalty-brand">
+      <span class="loyalty-logo">★</span>
+      <div>
+        <h1>Loyalty Desk</h1>
+        <p>Signed in as <strong><%= name %></strong> · Cashier</p>
+      </div>
+    </div>
+    <button type="button" class="loyalty-ghost-btn" onclick="window.location.href='/logout'">Logout</button>
+  </header>
 
+  <p id="toast" class="loyalty-toast" role="status" aria-live="polite"></p>
+
+  <main class="loyalty-app">
+
+    <!-- Customer search + enrolment -->
+    <section class="loyalty-panel">
+      <div class="loyalty-panel-head">
+        <h2>Customers</h2>
+        <button type="button" id="newCustomerToggle" class="loyalty-secondary-btn">+ New</button>
+      </div>
+
+      <form id="newCustomerForm" class="loyalty-subform is-hidden">
+        <p class="loyalty-subform-title">Enrol a customer</p>
+        <label>Name
+          <input type="text" name="name" required placeholder="Jane Doe">
+        </label>
+        <label>Email
+          <input type="email" name="email" placeholder="jane@example.com">
+        </label>
+        <label>Phone
+          <input type="tel" name="phone" placeholder="555-0134">
+        </label>
+        <div class="loyalty-row">
+          <button type="submit" class="loyalty-primary-btn">Save</button>
+          <button type="button" id="newCustomerCancel" class="loyalty-ghost-btn">Cancel</button>
+        </div>
+      </form>
+
+      <form id="searchForm" class="loyalty-search" role="search">
+        <input type="search" id="searchInput" placeholder="Search name, email or phone" autocomplete="off">
+      </form>
+
+      <ul id="customerList" class="loyalty-list"></ul>
+      <p id="listEmpty" class="loyalty-empty is-hidden">No customers match that search yet.</p>
+    </section>
+
+    <!-- Selected customer -->
+    <section class="loyalty-panel">
+      <div id="detailEmpty" class="loyalty-empty">
+        <span class="loyalty-empty-mark">★</span>
+        <p>Pick a customer on the left to add or redeem points.</p>
+      </div>
+
+      <div id="detail" class="is-hidden">
+        <div class="loyalty-detail-head">
+          <div>
+            <h2 id="customerName">—</h2>
+            <p id="customerContact" class="loyalty-muted">—</p>
+          </div>
+          <span id="customerTier" class="loyalty-tier tier-bronze">bronze</span>
+        </div>
+
+        <div class="loyalty-stats">
+          <div class="loyalty-stat">
+            <span class="loyalty-stat-label">Balance</span>
+            <strong id="statPoints">0</strong>
+          </div>
+          <div class="loyalty-stat">
+            <span class="loyalty-stat-label">Lifetime earned</span>
+            <strong id="statLifetime">0</strong>
+          </div>
+          <div class="loyalty-stat">
+            <span class="loyalty-stat-label">Next tier</span>
+            <strong id="statNextTier">—</strong>
+          </div>
+        </div>
+
+        <div class="loyalty-grid">
+          <form id="earnForm" class="loyalty-card">
+            <h3>Add points</h3>
+            <label>Points
+              <input type="number" id="earnPoints" min="1" step="1" value="10" required>
+            </label>
+            <label>Note
+              <input type="text" id="earnNote" placeholder="e.g. in-store purchase">
+            </label>
+            <button type="submit" class="loyalty-primary-btn">Earn points</button>
+          </form>
+
+          <form id="redeemForm" class="loyalty-card">
+            <h3>Redeem points</h3>
+            <label>Points
+              <input type="number" id="redeemPoints" min="1" step="1" value="50" required>
+            </label>
+            <label>Note
+              <input type="text" id="redeemNote" placeholder="e.g. reward redeemed">
+            </label>
+            <button type="submit" class="loyalty-primary-btn">Redeem points</button>
+
+            <p class="loyalty-rewards-title">Quick rewards</p>
+            <div class="loyalty-rewards">
+              <% rewards.forEach(function (reward) { %>
+                <button type="button" class="loyalty-reward" data-points="<%= reward.cost %>" data-label="<%= reward.label %>">
+                  <span><%= reward.label %></span>
+                  <span class="loyalty-reward-cost"><%= reward.cost %> pts</span>
+                </button>
+              <% }); %>
+            </div>
+          </form>
+        </div>
+
+        <h3 class="loyalty-history-title">Recent activity</h3>
+        <div class="loyalty-table-wrap">
+          <table class="loyalty-table">
+            <thead>
+              <tr>
+                <th>When</th>
+                <th>Action</th>
+                <th>Points</th>
+                <th>Note</th>
+                <th>Cashier</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+          <p id="historyEmpty" class="loyalty-empty is-hidden">No activity for this customer yet.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/loyalty.js"></script>
 </body>
 
 </html>
