@@ -25,10 +25,25 @@
               <input type="text" class="form-control" name="supplier-name" required placeholder="supplier name">
             </div>
 
+
+            <div class="mb-3">
+              <label class="form-label">Supplier Phone Number</label>
+              <input type="tel" class="form-control" name="supplier-phone" required
+              pattern="[0-9+\-\s()]{7,20}" placeholder="e.g. +964 750 123 4567">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Supplier Email</label>
+              <input type="email" class="form-control" name="supplier-email" required placeholder="supplier@example.com">
+          </div>
+
+
             <div class="mb-3">
               <label class="form-label">Supply Label</label>
               <input type="text" class="form-control" name="supply-label" required placeholder="supply label">
             </div>
+
+            
 
             <div class="mb-3">
               <label class="form-label">Supply Type</label>
@@ -57,6 +72,24 @@
             </div>
 
 
+            
+             <div class="mb-3">
+              <label class="form-label">Measurement Type</label>
+              <select name="measurement-type" required class="form-control">
+                <option value="">Select unit</option>
+                <option value="kg">Kilogram (kg)</option>
+                <option value="g">Gram (g)</option>
+                <option value="lb">Pound (lb)</option>
+                <option value="l">Liter (L)</option>
+                <option value="ml">Milliliter (mL)</option>
+                <option value="piece">Piece</option>
+                <option value="box">Box</option>
+                <option value="pack">Pack</option>
+              </select>
+              </div>
+          
+
+
             <div class="mb-3">
               <label class="form-label">Supply Price</label>
               <input type="number" id="suppierPrice" step="0.01" min="0" max="999.99" class="form-control" name="supply-price" placeholder="0.00" required>
@@ -67,6 +100,7 @@
               <label class="form-label">Date of Delivery</label>
               <input type="date" class="form-control" name="date_of_delivery" required value="<%= new Date().toISOString().split('T')[0] %>">
             </div>
+          </div>
 
             <button type="submit" class="btn btn-primary w-100">Save Supply</button>
           </form>
@@ -86,11 +120,13 @@
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Name</th>
+                  <th>Supplier</th>
+                  <th>Contact</th>
                   <th>Label</th>
                   <th>Type / Category</th>
-                  <th>Price</th>
+                  <th>Measurement</th>
                   <th>Count</th>
+                  <th>Price</th>
                   <th>Delivered At</th>
                 </tr>
               </thead>
@@ -98,11 +134,11 @@
                 <!-- Dynamic rows load here -->
               </tbody>
             </table>
-            <button onclick="window.location.href='/logout'">Logout</button>
           </div>
         </div>
       </div>
     </div>
+    <button onclick="window.location.href='/logout'" style="margin: 20px;">Logout</button>
   </div>
 </div>
 
@@ -117,16 +153,29 @@ async function loadSupplies() {
     const tbody = document.getElementById('supplyTableBody');
     tbody.innerHTML = '';
 
+    if (!supplies.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 9;
+      td.textContent = 'No supplies yet.';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
     supplies.forEach(s => {
       const tr = document.createElement('tr');
+      const contact = [s['supplier-phone'], s['supplier-email']].filter(Boolean).join(' / ') || '-';
       tr.innerHTML = `
         <td>${s.id}</td>
-        <td>${s['supplier-name']}</td>
-        <td>${s['supply-label']}</td>
-        <td>${s['supply-type']} / ${s['supply-category']}</td>
-        <td>${s['supply-price']}</td>
-        <td>${s['supply-count']}</td>
-        <td>${s['date-of-delivery']}</td>
+        <td>${s['supplier-name'] || '-'}</td>
+        <td>${contact}</td>
+        <td>${s['supply-label'] || '-'}</td>
+        <td>${s['supply-type'] || '-'} / ${s['supply-category'] || '-'}</td>
+        <td>${s['measurement-type'] || '-'}</td>
+        <td>${s['supply-count'] ?? '-'}</td>
+        <td>${s['supply-price'] ?? '-'}</td>
+        <td>${s['date-of-delivery'] ? new Date(s['date-of-delivery']).toLocaleDateString() : '-'}</td>
       `;
       tbody.appendChild(tr);
     });

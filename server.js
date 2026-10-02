@@ -156,9 +156,12 @@ app.get('/storage-manager', requireLogin('storage-manager'), (req, res) => {
 app.post('/supplier', requireLogin('storage-manager'), async (req, res) => {
   const {
     'supplier-name': supplierName,
+    'supplier-phone': supplierPhone,
+    'supplier-email': supplierEmail,
     'supply-label': supplyLabel,
     'supply-type': supplyType,
     'supply-category': supplyCategory,
+    'measurement-type': measurementType,
     'supply-count': supplyCount,
     'supply-price': supplyPrice,
     'date_of_delivery': dateOfDelivery
@@ -167,9 +170,12 @@ app.post('/supplier', requireLogin('storage-manager'), async (req, res) => {
   try {
     addSupply({
       supplierName,
+      supplierPhone,
+      supplierEmail,
       supplyLabel,
       supplyType,
       supplyCategory,
+      measurementType,
       supplyCount,
       supplyPrice,
       dateOfDelivery,
